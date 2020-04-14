@@ -236,6 +236,9 @@ static const uint8_t PROGMEM initList[] = {
     SSD1351_CMD_PRECHARGE2,
     1,
     0x01,
+    SSD1351_CMD_SETREMAP,
+    1,
+    0x74,
     SSD1351_CMD_DISPLAYON,
     0,  // Main screen turn on
     0}; // END OF COMMAND LIST
@@ -265,7 +268,6 @@ void Adafruit_SSD1351::begin(uint32_t freq) {
     }
     addr += numArgs;
   }
-  setRotation(0);
 }
 
 // GFX FUNCTIONS -----------------------------------------------------------
