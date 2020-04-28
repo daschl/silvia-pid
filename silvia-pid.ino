@@ -1,6 +1,7 @@
 #include <Adafruit_GFX.h>
 #include <SPI.h>
 
+#include "TSIC.h"
 #include "Adafruit_SSD1351.h"
 #include "bitmaps.h"
 
@@ -26,6 +27,13 @@
 #define DISPLAY_WIDTH   128
 #define DISPLAY_HEIGHT  128
 
+// ----------------------------------
+// --- Temp Sensor Initialization ---
+// ----------------------------------
+
+#define TEMP_SIGNAL_PIN 16
+TSIC TempSensor(TEMP_SIGNAL_PIN);
+
 Adafruit_SSD1351 display = Adafruit_SSD1351(
   DISPLAY_WIDTH, 
   DISPLAY_HEIGHT, 
@@ -42,7 +50,10 @@ Adafruit_SSD1351 display = Adafruit_SSD1351(
 void setup() {
   logInit();
   displayInit();
+
   renderBootLogo();
+  delay(1000);
+  display.fillScreen(0xFFFF);
 }
 
 // ---------------------
@@ -50,7 +61,9 @@ void setup() {
 // ---------------------
 
 void loop() {
-
+  float currentTemp = currentSensorTemp();
+  renderOverview(currentTemp);
+  delay(1000);
 }
 
 // -------------------------
@@ -68,12 +81,39 @@ void renderBootLogo() {
   display.drawRGBBitmap(17,17, bootLogo, 94, 94);
 }
 
+void renderOverview(float currentTemp) {
+  display.setCursor(0, 0);
+  display.setTextColor(0x0000, 0xFFFF);
+  display.setTextSize(1);
+  display.print("Temp: ");
+  display.print(currentTemp);
+}
+
+// -----------------------------
+// --- Temp Sensor Functions ---
+// -----------------------------
+float currentSensorTemp() {
+  uint16_t tempRaw = 0;
+  TempSensor.getTemperature(&tempRaw);
+  float tempCelsius = TempSensor.calc_Celsius(&tempRaw);
+
+  #ifdef DEBUG
+  Serial.print("Current Sensor Temp: Raw=");
+  Serial.print(tempRaw);
+  Serial.print(", Celsius=");
+  Serial.println(tempCelsius);
+  #endif
+
+  return tempCelsius;
+}
+
 // -----------------------
 // --- Debug Functions ---
 // -----------------------
 void logInit() {
   #ifdef DEBUG
   Serial.begin(SERIAL_BAUD);
+  Serial.println("");
   Serial.println("Starting Siliva PID");
   #endif
 }
